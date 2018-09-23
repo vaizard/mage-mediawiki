@@ -128,3 +128,49 @@
 #    - find {{ mediawiki_root }}/languages/i18n/ -type f -not \( -iname 'en*' -or -iname 'zh*' \) | xargs rm -f
 #    - find . -print | while read filename; do touch -d '{{ mediawiki_startdate }}' "$filename"; done
 #- tar -czvf ../mediawiki_REL1{{ mediawiki_version.split('_')[1] }}_setup_$(date '+%Y%m%d').tar.gz ../$(basename {{ mediawiki_root }})
+
+#################
+### CONFIGURE ###
+#################
+
+- name: initialize {{ install_role_name }} database
+  command: >
+    php {{ mediawiki_root }}/maintenance/install.php \
+      --dbuser {{ mediawiki_db_user }} --dbpass {{ wiki_db_pass }} \
+      --dbname {{ mediawiki_db_name }} --dbserver localhost --dbtype mysql --dbprefix wiki_ \
+      --email {{ mediawiki_admin_email }} \
+      --installdbuser {{ mediawiki_db_user }} --installdbpass {{ mediawiki_db_pass }} \
+      --server {{ mediawiki_uri }} --pass {{ mediawiki_admin_pass }} \
+      {{ mediawiki_admin_user }}
+    chdir={{ mediawiki_root }}
+    
+- name: "Ensure {{ mediawiki_root }}/conf.d directory exists"
+  file:
+    path: "{{ mediawiki_root }}/conf.d"
+    state: directory
+    mode: 0755
+
+- name: Ensure mediawiki is conigured
+  template:
+    src: "{{ item.name }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode|default('0644') }}"
+    backup: yes
+  with_items: "{{ mediawiki_configuration }}"
+
+- name: Backup the empty database
+  mysql_db:
+    name: "{{ mediawiki_db_name }}"
+    login_user: "{{ mediawiki_db_user }}"
+    login_password: "{{ mediawiki_db_pass }}"
+    state: dump
+    target: "{{ mediawiki_root }}/conf.d/mediawiki_REL1_{{ mediawiki_version.split('_')[1] }}_emptydb.sql"
+
+#- name: initialize {{ install_role_name }} Parsoid Services
+#  shell:  "{{ item }}
+#          chdir={{ mediawiki_root }}/services/parsoid"
+#  with_items:
+#    - npm install
+
