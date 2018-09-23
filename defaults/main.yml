@@ -16,5 +16,8 @@ mediawiki_admin_email: admin@example.com
 mediawiki_admin_user: admin
 mediawiki_admin_pass: S3CR3Tpass123
 
+mediawiki_configuration:
+  - { name: 'mediawiki-LocalSettings.php.j2', dest: '{{ mediawiki_root }}/LocalSettings.php' }
+
 
 
