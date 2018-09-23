@@ -1,5 +1,20 @@
 ---
-mediawiki_root: /var/www/html
+
+mediawiki_uri: https://example.com/mediawiki/
+mediawiki_root: /var/www/html/mediawiki
 mediawiki_version: 1.31.0
 mediawiki_repo: https://gerrit.wikimedia.org/r/p/mediawiki/core.git
 mediawiki_exts_repobase: https://gerrit.wikimedia.org/r/p/mediawiki/extensions
+
+mediawiki_db_user: mediawiki
+mediawiki_db_pass: S3CR3Tpass321
+mediawiki_db_name: mediawiki
+mediawiki_db_type: mysql
+mediawiki_db_prefix: wiki
+
+mediawiki_admin_email: admin@example.com
+mediawiki_admin_user: admin
+mediawiki_admin_pass: S3CR3Tpass123
+
+
+
