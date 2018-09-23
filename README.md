@@ -1,0 +1,2 @@
+# mage-mediawiki
+Deploys mediawiki.
