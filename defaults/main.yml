@@ -1,0 +1,5 @@
+---
+mediawiki_root: /var/www/html
+mediawiki_version: 1.31.0
+mediawiki_repo: https://gerrit.wikimedia.org/r/p/mediawiki/core.git
+mediawiki_exts_repobase: https://gerrit.wikimedia.org/r/p/mediawiki/extensions
