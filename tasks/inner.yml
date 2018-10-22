@@ -1,0 +1,180 @@
+---
+
+- name: Ensure mediwiki rootdir exists
+  file:
+    path: "{{ outer_item.root.split('/')[0:-1]|join('/') }}"
+    state: directory
+    mode: 0755
+#  become_user: "{{ mediawiki_user }}"
+
+
+- name: Clone mediawiki from main repo
+  git:
+    repo: "{{ mediawiki_repo }}"
+    dest: "{{ outer_item.root }}"
+    version: "{{ outer_item.version | default(mediawiki_def_version) }}"
+    depth: 1
+    force: yes
+    update: yes
+#  become_user: "{{ mediawiki_user }}"
+
+#- name: Composer install
+#  command: "composer install --no-dev chdir={{ mediawiki_root }}"
+
+#- name: Clean skins & extensions directory before cloning new stuff in"
+#  shell: "{{ item }} chdir={{ mediawiki_root }}"
+#  with_items:
+#    - find skins/* -maxdepth 1 ! -name 'README' | xargs rm -rf
+#    - find extensions/* -maxdepth 1 ! -name 'README' | xargs rm -rf
+
+#- name: Clone skins from main repo
+#  git:
+#    repo: "{{ mediawiki_repo }}"
+#    dest: "{{ mediawiki_root }}/skins/{{ item.name }}"
+#    version: "{{ mediawiki_version }}"
+#    depth: 1
+#    force: yes
+#    update: yes
+#  with_items: "{{ mediawiki_core_skins }}"
+
+#- name: Clone skins from 3rd-party reps
+#  git:
+#    repo: "{{ item.repo }}"
+#    dest: "{{ mediawiki_root }}/skins/{{ item.name }}"
+#    version: "{{ item.version }}"
+#    depth: 1
+#    force: yes
+#    update: yes
+#  with_items: "{{ mediawiki_3rdparty_skins }}"
+
+#- name: clone extensions from main repo
+#  git:
+#    repo: "{{ mediawiki_exts_repobase }}/{{ item.name }}.git"
+#    dest: "{{ mediawiki_root }}/extensions/{{ item.name }}"
+#    version: "{{ mediawiki_version }}"
+#    depth: 1
+#    force: yes
+#    update: yes
+#  with_items: "{{ mediawiki_core_extensions }}"
+
+#- name: Clone extensions from 3rd-party repository
+#  git:
+#    repo: "{{ item.repo }}"
+#    dest: "{{ mediawiki_root }}/extensions/{{ item.name }}"
+#    version: "{{ item.version }}"
+#    force: yes
+#    update: yes
+#  with_items: "{{ mediawiki_3rdparty_extensions }}"
+
+#- name: Initialize WYSIWYG (CKEditor) extension
+#  shell: "{{ item }}
+#            chdir={{ mediawiki_root }}/extensions"
+#  with_items:
+#    - rm -rf {{ mediawiki_root }}/extensions/WYSIWYG/WYSIWYG/ckeditor_source
+#    - rm -rf {{ mediawiki_root }}/extensions/WYSIWYG/SemanticForms
+#    - rm -rf {{ mediawiki_root }}/extensions/WYSIWYG/WikiEditor
+#    - mv {{ mediawiki_root }}/extensions/WYSIWYG/WYSIWYG/* {{ mediawiki_root }}/extensions/WYSIWYG/
+#    - rm -rf {{ mediawiki_root }}/extensions/WYSIWYG/WYSIWYG
+
+#- name: Initialize extensions (git submodule update -- init)
+#  command: "git submodule update --init
+#            chdir={{ mediawiki_root }}/extensions/{{ item.name }}"
+#  with_items: "{{ mediawiki_core_extensions }}"
+
+#- name: initialize extensions (composer)
+#  command: "composer install chdir={{ mediawiki_root }}/extensions/{{ item.name }}"
+#  with_items: "{{ mediawiki_extension_dependency }}"
+
+#- name: update required packages (composer)
+#  command: "php {{ mediawiki_root }}/composer.phar require {{ item.name }}:{{ item.version }} {{ item.option|default('') }}
+#            chdir={{ mediawiki_root }}"
+#  with_items: "{{ mediawiki_extension_bycomposer }}"
+
+#- name: create {{ install_role_name }} services directory
+#  file:
+#    path: "{{ mediawiki_root }}/services"
+#    state: directory
+#    mode: 0644
+
+#- name: Clone Parsoid Services
+#  git:
+#    repo: "https://gerrit.wikimedia.org/r/p/mediawiki/services/{{ item.name }}.git"
+#    dest: "{{ mediawiki_root }}/services/{{ item.name }}"
+#    version: "{{ item.version }}"
+#    depth: 1
+#    force: yes
+#    update: yes
+#  with_items: "{{ mediawiki_core_services }}"
+
+#- name: remove .git recursively from installation
+#  shell:  "{{ item }}
+#          chdir={{ mediawiki_root }}"
+#  with_items:
+#    - "find . ! -name services | grep .git | xargs rm -rf"
+
+#- name: copy {{ install_role_name }} customization files
+#  copy:
+#    src: "{{ item.name }}"
+#    dest: "{{ item.dest }}"
+#    owner: root
+#    group: root
+#    mode: "{{ item.mode|default('0644') }}"
+#    backup: yes
+#  with_items: "{{ mediawiki_customization }}"
+
+#- name: cleanup {{ install_role_name }} installation
+#  shell:  "{{ item }}
+#          chdir={{ mediawiki_root }}"
+#  with_items:
+#    - rm -f COPYING CREDITS FAQ HISTORY INSTALL README README.mediawiki UPGRADE
+#    - rm -rf docs tests
+#    - find {{ mediawiki_root }}/languages/i18n/ -type f -not \( -iname 'en*' -or -iname 'zh*' \) | xargs rm -f
+#    - find . -print | while read filename; do touch -d '{{ mediawiki_startdate }}' "$filename"; done
+#- tar -czvf ../mediawiki_REL1{{ mediawiki_version.split('_')[1] }}_setup_$(date '+%Y%m%d').tar.gz ../$(basename {{ mediawiki_root }})
+
+#################
+### CONFIGURE ###
+#################
+
+
+- name: remove LocalSettings.php if it already exists
+  file:
+    path="{{ outer_item.root }}/LocalSettings.php"
+    state=absent
+
+- name: generate fresh LocalSettings.php
+  command: >
+    php {{ outer_item.root }}/maintenance/install.php \
+      --dbuser {{ outer_item.db_user }} --dbpass {{ outer_item.db_pass }} \
+      --dbname {{ outer_item.db_name }} --dbserver localhost --dbtype {{ outer_item.db_type | default(mediawiki_def_db_type) }} --dbprefix {{ outer_item.db_prefix | default(mediawiki_def_db_prefix) }} \
+      --email {{ outer_item.admin_email }} \
+      --installdbuser {{ outer_item.db_user }} --installdbpass {{ outer_item.db_pass }} \
+      --server {{ outer_item.uri }} --pass {{ outer_item.admin_pass }} \
+      --scriptpath {{ outer_item.scriptpath | default('/') }}
+      {{ outer_item.admin_user }}
+    chdir={{ outer_item.root }}
+#  become_user: "{{ mediawiki_user }}"
+
+- name: "Ensure {{ outer_item.root }}/conf.d directory exists"
+  file:
+    path: "{{ outer_item.root }}/conf.d"
+    state: directory
+    mode: 0755
+#  become_user: "{{ mediawiki_user }}"
+
+#- name: "Backup the empty database"
+- name: Backup empty database
+  mysql_db:
+    name: "{{ outer_item.db_name }}"
+    login_user: "{{ outer_item.db_user }}"
+    login_password: "{{ outer_item.db_pass }}"
+    state: dump
+    target: "{{ outer_item.root }}/conf.d/mediawiki_REL1_{{ mediawiki_def_version.split('_') if outer_item.version is not defined else outer_item.version.split('_') }}_emptydb.sql"
+
+
+#- name: initialize {{ install_role_name }} Parsoid Services
+#  shell:  "{{ item }}
+#          chdir={{ mediawiki_root }}/services/parsoid"
+#  with_items:
+#    - npm install
+
