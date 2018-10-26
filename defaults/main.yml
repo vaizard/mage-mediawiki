@@ -1,13 +1,97 @@
 ---
 
-mediawiki_repo: https://gerrit.wikimedia.org/r/p/mediawiki/core.git
-mediawiki_exts_repobase: https://gerrit.wikimedia.org/r/p/mediawiki/extensions
-mediawiki_def_version: 1.31.0
+mediawiki_user: root
+mediawiki_def_version: 1.31.1
 mediawiki_def_user: www-data
 mediawiki_def_db_type: mysql
 mediawiki_def_db_prefix: wiki_
-#mediawiki_def_configuration:
-#  - { name: 'mediawiki-LocalSettings.php.j2', dest: '{{ mediawiki_root }}/LocalSettings.php' }
 
+# mwr - a helper variable, stands for 'mediawiki release'
+mwr: "{{ mediawiki_def_version | regex_replace('^([0-9])\\.([0-9]*).*', 'REL\\1_\\2') }}"
 
+mediawiki_skins:
+  - { name: 'Vector',       version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-skins-Vector' }
+  - { name: 'Tweeki',       version: 'master',  type: 'wfload', repo: 'https://github.com/thaider/Tweeki' }
+  - { name: 'Pivot',        version: 'master',  type: 'wfload', repo: 'https://github.com/Hutchy68/pivot' }
 
+mediawiki_exts:
+  - { name: 'DynamicPageList', version: 'master',  repo: 'https://github.com/Alexia/DynamicPageList' }           # create lists of other articles based on their category etc.
+  - { name: 'EmbedVideo',      version: 'master',  repo: 'https://github.com/HydraWiki/mediawiki-embedvideo' } # embedding video clips from over 24 popular video sharing services
+  - { name: 'PDFEmbed',        version: 'master',  repo: 'https://github.com/HydraWiki/PDFEmbed' }             # allows Adobe Acrobat PDF files to be embedded into a wiki article using tags
+  - { name: 'CategoryTree',    version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-CategoryTree' }             # provides a dynamic view of the wiki's catagory structure as a tree
+  - { name: 'Cite',            version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-Cite' }                      # allows footnotes for citing sources and helps for correctly citing content in offline media
+  - { name: 'CiteThisPage',    version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-CiteThisPage' }              # adds a special page that provides different citation format
+  - { name: 'CodeEditor',      version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-CodeEditor' }                # provides a syntax-highlighting code editor for site
+  - { name: 'ConfirmEdit',     version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-ConfirmEdit' }               # adds CAPTCHAs for page savers and other user actions
+  - { name: 'Echo',            version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-Echo' }                     # provides an in-wiki notification system that can be used by other extensions
+  - { name: 'Flow',            version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-Flow' }                     # provides a discussion and collaboration system for talk pages
+  - { name: 'ImageMap',        version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-ImageMap' }                  # allows clickable image maps
+  - { name: 'InputBox',        version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-InputBox' }                  # allows users to add predefined HTML forms
+  - { name: 'Interwiki',       version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-Interwiki' }                 # adds the "Special:Interwiki" page to MediaWiki, to view and edit the interwiki table
+  - { name: 'LocalisationUpdate', version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-LocalisationUpdate' }        # allows to update the locations for MediaWiki message without upgrade the MediaWiki
+  - { name: 'Math',            version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-Math' }                      # allows to render mathematical formulas
+  - { name: 'MobileFrontend',  version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-MobileFrontend' }            # provides a mobile-friendly view
+  - { name: 'MultimediaViewer',   version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-MultimediaViewer' }          # provides a better experience to users when they click on thumbnails in a page
+  - { name: 'ParserFunctions', version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-ParserFunctions' }           # enhances parser with logical and string functions
+  - { name: 'PdfHandler',      version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-PdfHandler' }                # allows to handle PDF files
+  - { name: 'PageImages',      version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-PageImages' }                # collect information about images used on a page. required by PopUp extension, require beofre 1.28
+  - { name: 'Popups',          version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-Popups' }                    # displays "hovercards" popups with summaries of article contents
+  - { name: 'Renameuser',      version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-Renameuser' }
+  - { name: 'SyntaxHighlight_GeSHi', version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-SyntaxHighlight_GeSHi' }     # provides rich formating of source code using the <syntaxhighlight> tag
+  - { name: 'TextExtracts',    version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-TextExtracts' }              # provides an API with allows to retrieve plain-text. required by PopUp extension
+  - { name: 'WikiEditor',      version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-WikiEditor' }                # provides an improved interface for editing wikitext
+
+mediawiki_config:
+  - name: "Disable anon read"
+    conf: |
+      // Disable reading for anon users, but allow access to the login page, otherwise there is no way to log in
+      //$wgGroupPermissions['*']['read'] = false;
+      //$wgWhitelistRead = array ("Main Page", "Special:Userlogin", "Special:Recentchanges", "MediaWiki:Common.css", "-");
+      //$wgWhitelistReadRegexp = array( "/File:.*icon.*/" );
+  - name: "Disable anon edit"
+    conf: |
+      $wgGroupPermissions['*']['createaccount'] = false;         // prevent new user registration
+      $wgGroupPermissions['*']['edit'] = false;                  // disable editing for anonymous users
+      $wgGroupPermissions['user']['edit'] = true;                // disable editing for anonymous users
+      $wgGroupPermissions['sysop']['edit'] = true;               // disable editing for anonymous users
+      $wgGroupPermissions['user']['upload'] = true;              // allow register users to upload files
+      $wgGroupPermissions['registered_users']['wysiwyg'] = true; // allow register users for richeditor
+      $wgGroupPermissions['sysop']['createaccount'] = true;      // Prevent new user registrations except by sysops
+      $wgGroupPermissions['sysop']['deletelogentry'] = true;     // allow Sysop to hide revisions and log items from users
+      $wgGroupPermissions['sysop']['deleterevision'] = true;     // allow Sysop to hide revisions and log items from users
+      $wgGroupPermissions['sysop']['hideuser'] = true;           // allow Sysop to hide usernames from users
+      $wgGroupPermissions['sysop']['suppressrevision'] = true;   // allow Sysop to hide revisions and log items from users
+      $wgGroupPermissions['sysop']['suppressionlog'] = true;     // allow Sysop to hide revisions and log items from users
+  - name: "Enable uploads and images"
+    conf: |
+      $wgEnableUploads = true; // Enable uploads
+      $wgAllowJavaUploads = true;     // Solves problem with Office 2007 and newer files (docx, xlsx, etc.)
+      $wgUseImageResize = true;
+      $wgUseImageMagick = true;
+      $wgImageMagickConvertCommand = "/usr/bin/convert";
+
+      // Increase the limit to 36m pixels or 6000x6000
+      $wgMaxImageArea = 3.6e7;
+      $wgMemoryLimit = 307200;
+      $wgMaxShellMemory = 307200;
+
+      // Do not allow more than three thumb sizes to reduce disk usage, default to the midsize option
+      $wgThumbLimits  = array(
+        240, // thumb size 0
+        360, // thumb size 1
+        480  // thumb size 2
+      );
+      $wgDefaultUserOptions['thumbsize'] = 1;
+
+      // SVG image support
+        $wgAllowTitlesInSVG = true;
+        $wgSVGConverter = 'ImageMagick';
+        $wgSVGConverters = array(
+          'ImageMagick' => '"' . $wgImageMagickConvertCommand . '" -background transparent -thumbnail $widthx$height^! $input PNG:$output',
+        );
+
+      // InstantCommons allows wiki to use images from http://commons.wikimedia.org
+      $wgUseInstantCommons = false;
+
+      // Set $wgAllowImageTag to allow <img> tag to be used in wikitext
+      $wgAllowImageTag = true;

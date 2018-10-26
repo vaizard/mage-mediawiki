@@ -14,6 +14,7 @@ mediawiki:
     admin_email: root@example.com
     admin_user: exroot
     admin_pass: megasecret
+    wiki_name: Labs wiki
   - root: /var/www/vhosts/wiki.org
     uri: https://wiki.org
     scriptpath: /
@@ -23,5 +24,7 @@ mediawiki:
     admin_email: root@wikiorg
     admin_user: exroot
     admin_pass: megasecret2
+    wiki_name: The Wiki Org
+
 ```
 
