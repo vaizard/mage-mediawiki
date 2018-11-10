@@ -10,14 +10,14 @@
     path: "{{ outer_item.root.split('/')[0:-1]|join('/') }}"
     state: directory
     mode: 0755
-  become_user: "{{ mediawiki_user }}"
+  become_user: "{{ mediawiki_def_user }}"
 
 - name: Unarchive MediaWiki
   unarchive:
     src: "https://github.com/wikimedia/mediawiki/archive/{{ outer_item.version | default(mediawiki_def_version) }}.tar.gz"
     dest: "{{ outer_item.root }}"
-    owner: "{{ mediawiki_user }}"
-    group: "{{ mediawiki_user }}"
+    owner: "{{ mediawiki_def_user }}"
+    group: "{{ mediawiki_def_user }}"
     remote_src: yes
     extra_opts: "--strip-components=1"
 
@@ -35,7 +35,7 @@
     path: "{{ outer_item.root }}/skins/{{ item.name }}"
     state: directory
     mode: 0755
-  become_user: "{{ mediawiki_user }}"
+  become_user: "{{ mediawiki_def_user }}"
   with_items: "{{ mediawiki_skins }}"
 
 - name: Ensure mediwiki extensions dir is populated
@@ -43,15 +43,15 @@
     path: "{{ outer_item.root }}/extensions/{{ item.name }}"
     state: directory
     mode: 0755
-  become_user: "{{ mediawiki_user }}"
+  become_user: "{{ mediawiki_def_user }}"
   with_items: "{{ mediawiki_exts }}"
 
 - name: Ensure MediaWiki skins are in place
   unarchive:
     src: "{{ item.repo }}/archive/{{ item.version | default('master') }}.tar.gz"
     dest: "{{ outer_item.root }}/skins/{{ item.name }}"
-    owner: "{{ mediawiki_user }}"
-    group: "{{ mediawiki_user }}"
+    owner: "{{ mediawiki_def_user }}"
+    group: "{{ mediawiki_def_user }}"
     remote_src: yes
     extra_opts: "--strip-components=1"
   with_items: "{{ mediawiki_skins }}"
@@ -60,8 +60,8 @@
   unarchive:
     src: "{{ item.repo }}/archive/{{ item.version | default('master') }}.tar.gz"
     dest: "{{ outer_item.root }}/extensions/{{ item.name }}"
-    owner: "{{ mediawiki_user }}"
-    group: "{{ mediawiki_user }}"
+    owner: "{{ mediawiki_def_user }}"
+    group: "{{ mediawiki_def_user }}"
     remote_src: yes
     extra_opts: "--strip-components=1"
   with_items: "{{ mediawiki_exts }}"
@@ -79,7 +79,7 @@
 
 - name: Ensure image directory is writable
   file:
-    path: "{ outer_item.root }}/images"
+    path: "{{ outer_item.root }}/images"
     mode: 0777
     state: directory
 
@@ -130,7 +130,7 @@
       --scriptpath {{ outer_item.scriptpath | default('/') }} \
       "{{ outer_item.wiki_name }}" "{{ outer_item.admin_user }}"
     chdir={{ outer_item.root }}
-  become_user: "{{ mediawiki_user }}"
+  become_user: "{{ mediawiki_def_user }}"
 
 - stat:
     path: "{{ outer_item.root }}/images/logo.png"
@@ -151,6 +151,20 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
   with_items: "{{ mediawiki_config }}"
 
+- name: "SMTP configuration"
+  blockinfile:
+    path: "{{ outer_item.root }}/LocalSettings.php"
+    block: |
+      $wgSMTP = array(
+        'host'     => "{{ outer_item.smtp_host }}", // could also be an IP address. Where the SMTP server is located
+        'IDHost'   => "{{ outer_item.smtp_id_host }}",        // Generally this will be the domain name of your website (aka mywiki.org)
+        'port'     => "{{ outer_item.smtp_port }}",                     // Port to use when connecting to the SMTP server
+        'auth'     => {{ outer_item.smtp_auth }},                    // Should we use SMTP authentication (true or false)
+        'username' => "{{ outer_item.smtp_username }}", // Username to use for SMTP authentication (if being used)
+        'password' => "{{ outer_item.smtp_password }}"       // Password to use for SMTP authentication (if being used)
+      );
+  when: outer_item.smtp_enabled
+
 - name: "Enable extensions"
   blockinfile:
     path: "{{ outer_item.root }}/LocalSettings.php"
@@ -170,7 +184,7 @@
     path: "{{ outer_item.root }}/backup"
     state: directory
     mode: 0755
-  become_user: "{{ mediawiki_user }}"
+  become_user: "{{ mediawiki_def_user }}"
 
 - name: "Ensure can't be accessed"
   copy: src=htaccess-deny-all dest="{{ outer_item.root }}/backup/.htaccess"

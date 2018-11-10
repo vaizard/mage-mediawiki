@@ -1,10 +1,11 @@
 ---
 
-mediawiki_user: root
 mediawiki_def_version: 1.31.1
 mediawiki_def_user: www-data
 mediawiki_def_db_type: mysql
 mediawiki_def_db_prefix: wiki_
+
+
 
 # mwr - a helper variable, stands for 'mediawiki release'
 mwr: "{{ mediawiki_def_version | regex_replace('^([0-9])\\.([0-9]*).*', 'REL\\1_\\2') }}"
