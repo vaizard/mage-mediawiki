@@ -96,3 +96,6 @@ mediawiki_config:
 
       // Set $wgAllowImageTag to allow <img> tag to be used in wikitext
       $wgAllowImageTag = true;
+  - name: "Set default mobile skin"
+    conf: |
+      $wgMFDefaultSkinClass = "SkinVector";
