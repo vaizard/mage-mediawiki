@@ -41,6 +41,7 @@ mediawiki_exts:
   - { name: 'SyntaxHighlight_GeSHi', version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-SyntaxHighlight_GeSHi' }     # provides rich formating of source code using the <syntaxhighlight> tag
   - { name: 'TextExtracts',    version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-TextExtracts' }              # provides an API with allows to retrieve plain-text. required by PopUp extension
   - { name: 'WikiEditor',      version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-WikiEditor' }                # provides an improved interface for editing wikitext
+  - { name: 'SwiftMailer',     version: '{{mwr}}', repo: 'https://github.com/wikimedia/mediawiki-extensions-swiftmailer' }
 
 mediawiki_config:
   - name: "Disable anon read"
@@ -96,3 +97,6 @@ mediawiki_config:
 
       // Set $wgAllowImageTag to allow <img> tag to be used in wikitext
       $wgAllowImageTag = true;
+  - name: "Configure MobileFrontend extension"
+    conf: |
+      $wgMFDefaultSkinClass = "SkinVector";

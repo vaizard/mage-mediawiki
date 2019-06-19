@@ -71,6 +71,21 @@
   with_items: "{{ mediawiki_exts }}"
   ignore_errors: yes
 
+- name: Test if SwiftMailer extension is installed
+  stat:
+    path: "{{ outer_item.root }}/extensions/SwiftMailer"
+  register: swift_installed
+
+- name: Test if SwiftMailer extension needs patching
+  stat:
+    path: "{{ outer_item.root }}/extensions/SwiftMailer/extension.json"
+  register: swift_needpatch
+  when: swift_installed.stat.isdir == True
+
+- name: Work around missing SwiftMailer extension extension.json
+  copy: src=swiftmailer-extension.json dest="{{ outer_item.root }}/extensions/SwiftMailer/extension.json"
+  when: swift_needpatch.stat.exists == False
+
 - name: remove .git recursively from installation
   shell:  "{{ item }}
           chdir={{ outer_item.root }}"
@@ -155,6 +170,7 @@
   blockinfile:
     path: "{{ outer_item.root }}/LocalSettings.php"
     block: |
+      $wgSMTPAuthenticationMethod = "{{ outer_item.smtp_authmethod }}";
       $wgSMTP = array(
         'host'     => "{{ outer_item.smtp_host }}", // could also be an IP address. Where the SMTP server is located
         'IDHost'   => "{{ outer_item.smtp_id_host }}",        // Generally this will be the domain name of your website (aka mywiki.org)
@@ -196,3 +212,4 @@
     login_password: "{{ outer_item.db_pass }}"
     state: dump
     target: "{{ outer_item.root }}/backup/mediawiki_REL1_{{ mediawiki_def_version.split('_') if outer_item.version is not defined else outer_item.version.split('_') }}_emptydb.sql"
+
