@@ -100,3 +100,6 @@ mediawiki_config:
   - name: "Configure MobileFrontend extension"
     conf: |
       $wgMFDefaultSkinClass = "SkinVector";
+  - name: "Remove index.php from URL, config part"
+    conf: |
+      $wgArticlePath = "/wiki/$1";
